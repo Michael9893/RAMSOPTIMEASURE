@@ -74,6 +74,30 @@ export default function Dimension3DBox({
     isDragging.current = false;
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches && e.touches[0]) {
+      isDragging.current = true;
+      previousMousePosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging.current || !e.touches || !e.touches[0]) return;
+    const deltaX = e.touches[0].clientX - previousMousePosition.current.x;
+    const deltaY = e.touches[0].clientY - previousMousePosition.current.y;
+
+    setRotation((prev) => ({
+      x: Math.min(Math.max(prev.x - deltaY * 1.0, -90), 90),
+      y: prev.y + deltaX * 1.0,
+    }));
+
+    previousMousePosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+
+  const handleTouchEnd = () => {
+    isDragging.current = false;
+  };
+
   return (
     <div className="w-full flex flex-col items-center justify-center py-6 bg-white rounded-2xl border border-zinc-200 shadow-sm p-4">
       <div className="text-center mb-4">
@@ -83,11 +107,15 @@ export default function Dimension3DBox({
 
       <div
         id="3d-canvas-container"
-        className="relative w-full h-[260px] bg-zinc-50 border border-zinc-100 rounded-xl flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none"
+        className="relative w-full h-[260px] bg-zinc-50 border border-zinc-100 rounded-xl flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
         style={{ perspective: "1000px" }}
       >
         <div

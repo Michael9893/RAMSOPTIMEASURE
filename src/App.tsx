@@ -91,10 +91,10 @@ export default function App() {
       </header>
 
       {/* 2. Main Dashboard Layout Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
         
         {/* Help Info Quick Banner */}
-        <div className="bg-zinc-100 border border-zinc-200/80 rounded-2xl p-5 flex gap-3 text-xs leading-relaxed text-zinc-600 shadow-sm">
+        <div className="bg-zinc-100 border border-zinc-200/80 rounded-2xl p-4 sm:p-5 flex gap-3 text-xs leading-relaxed text-zinc-600 shadow-sm">
           <HelpCircle className="w-5 h-5 text-zinc-400 flex-shrink-0 mt-0.5" />
           <div className="space-y-1">
             <span className="font-semibold text-zinc-800 block">How does camera tracking work without physical markers?</span>
@@ -119,15 +119,15 @@ export default function App() {
           {/* Active Result Analytics (Cols: 7) */}
           <div className="lg:col-span-7 flex flex-col gap-6">
             {activeScan ? (
-              <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm h-full flex flex-col justify-between">
+              <div className="bg-white border border-zinc-200 rounded-2xl p-4 sm:p-6 shadow-sm h-full flex flex-col justify-between">
                 <div className="space-y-5">
                   
                   {/* Result Title Header */}
-                  <div className="flex items-start justify-between border-b border-zinc-100 pb-3.5 gap-3">
-                    <div className="min-w-0 pr-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between border-b border-zinc-100 pb-3.5 gap-3">
+                    <div className="min-w-0 pr-0 sm:pr-4">
                       <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider font-mono">Real-time Analysis</span>
                       <h2 className="text-lg font-bold text-zinc-900 truncate mt-0.5">{activeScan.label}</h2>
-                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 mt-1">
+                      <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-zinc-500 mt-1">
                         <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded border border-zinc-250">
                           {activeScan.detectedType}
                         </span>
@@ -136,7 +136,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end flex-shrink-0 text-right">
+                    <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start flex-shrink-0 text-left sm:text-right border-t sm:border-t-0 border-zinc-100 sm:pt-0 pt-2.5 w-full sm:w-auto">
                       <div className="flex items-center gap-1.5 text-emerald-700 text-xs font-bold leading-none bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 shadow-sm">
                         <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
                         <span>Conf: {(activeScan.confidenceScore * 100).toFixed(0)}%</span>
