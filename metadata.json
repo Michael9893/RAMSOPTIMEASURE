@@ -1,0 +1,6 @@
+{
+  "name": "Paper Scan Ruler",
+  "description": "Measure and track the exact length, width, and thickness of papers, folders, or binders using your camera with real-time AI spatial calibration.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
