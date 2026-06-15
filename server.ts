@@ -78,8 +78,8 @@ async function generateContentWithFallback(
   let lastError: any = null;
 
   for (const model of modelsToTry) {
-    let retries = 3;
-    let delay = 1000;
+    let retries = 2;
+    let delay = 300;
 
     while (retries > 0) {
       try {

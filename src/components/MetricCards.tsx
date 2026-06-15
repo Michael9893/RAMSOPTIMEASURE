@@ -167,7 +167,7 @@ export default function MetricCards({ lengthMm, widthMm, thicknessMm, unit }: Me
               id="gsm-select"
               value={paperGsm}
               onChange={(e) => setPaperGsm(Number(e.target.value))}
-              className="text-[11px] bg-zinc-50 border border-zinc-200 text-zinc-800 rounded px-1.5 py-0.5 font-mono focus:outline-none focus:border-zinc-450"
+              className="text-[11px] bg-zinc-50 border border-zinc-200 text-zinc-800 rounded px-1.5 py-0.5 font-mono focus:outline-none focus:border-zinc-400"
             >
               <option value="70">70 GSM (Thin print)</option>
               <option value="80">80 GSM (Standard Copy)</option>
@@ -186,7 +186,7 @@ export default function MetricCards({ lengthMm, widthMm, thicknessMm, unit }: Me
             </div>
             <div className="flex justify-between items-baseline">
               <span className="text-[10px] text-zinc-500">US Postage ounces:</span>
-              <span className="text-xs font-semibold text-zinc-650 font-mono">
+              <span className="text-xs font-semibold text-zinc-600 font-mono">
                 {(estWeightGrams * 0.035274).toFixed(3)} oz
               </span>
             </div>

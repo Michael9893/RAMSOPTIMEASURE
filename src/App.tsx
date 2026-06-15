@@ -128,7 +128,7 @@ export default function App() {
                       <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider font-mono">Real-time Analysis</span>
                       <h2 className="text-lg font-bold text-zinc-900 truncate mt-0.5">{activeScan.label}</h2>
                       <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-zinc-500 mt-1">
-                        <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded border border-zinc-250">
+                        <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded border border-zinc-200">
                           {activeScan.detectedType}
                         </span>
                         <span>•</span>

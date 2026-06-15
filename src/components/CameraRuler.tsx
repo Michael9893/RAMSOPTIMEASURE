@@ -2,6 +2,16 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Camera, RefreshCw, Zap, Sliders, Info, Cpu, Check, AlertTriangle, EyeOff, Upload } from "lucide-react";
 import { ReferenceObject, ScanResult, Unit } from "../types";
 
+// Safe UUID generation helper for restricted framed environments or secure context limitations
+const generateUUID = () => {
+  if (typeof window !== "undefined" && window.crypto && window.crypto.randomUUID) {
+    try {
+      return window.crypto.randomUUID();
+    } catch (_) {}
+  }
+  return Math.random().toString(36).substring(2, 15) + "-" + Date.now().toString(36);
+};
+
 // Standard calibration objects
 const REFERENCE_OBJECTS: ReferenceObject[] = [
   {
@@ -134,7 +144,7 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
         const tagLabel = customLabel.trim() || `Scan ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
 
         const completedScan: ScanResult & { rawScan: boolean } = {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           timestamp: new Date().toISOString(),
           label: tagLabel,
           lengthMm: responseData.lengthMm,
@@ -528,7 +538,7 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
       const tagLabel = customLabel.trim() || `Scan ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
 
       const completedScan: ScanResult & { rawScan: boolean } = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         timestamp: new Date().toISOString(),
         label: tagLabel,
         lengthMm: responseData.lengthMm,
@@ -576,7 +586,7 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
           className={`relative rounded-2xl border overflow-hidden shadow-inner group flex items-center justify-center min-h-[320px] aspect-video transition-all duration-200 ${
             isDragOver 
               ? "bg-emerald-50 border-emerald-400 border-2 scale-[1.01]" 
-              : "bg-zinc-150 border-zinc-200"
+              : "bg-zinc-100 border-zinc-200"
           }`}
         >
           {/* Main Video Element */}
@@ -629,7 +639,7 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
                 </div>
               ) : (
                 <div className="space-y-5 max-w-md p-4">
-                  <div className="w-16 h-16 bg-white border border-zinc-200 rounded-2xl flex items-center justify-center mx-auto text-zinc-650 shadow-sm">
+                  <div className="w-16 h-16 bg-white border border-zinc-200 rounded-2xl flex items-center justify-center mx-auto text-zinc-600 shadow-sm">
                     {cameraPermissionState === "denied" ? (
                       <EyeOff className="w-7 h-7 text-rose-500" />
                     ) : (
@@ -736,19 +746,19 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
             {/* Preferred Unit Dropdowns */}
             <div className="flex bg-zinc-100 p-1 rounded-xl border border-zinc-200 text-xs font-mono font-bold">
               <button
-                className={`px-3 py-1 rounded-lg transition ${unit === Unit.MM ? "bg-white text-zinc-950 shadow-sm border border-zinc-250" : "text-zinc-500 hover:text-zinc-800"}`}
+                className={`px-3 py-1 rounded-lg transition ${unit === Unit.MM ? "bg-white text-zinc-950 shadow-sm border border-zinc-200" : "text-zinc-500 hover:text-zinc-800"}`}
                 onClick={() => onUnitChange(Unit.MM)}
               >
                 mm
               </button>
               <button
-                className={`px-3 py-1 rounded-lg transition ${unit === Unit.CM ? "bg-white text-zinc-950 shadow-sm border border-zinc-250" : "text-zinc-500 hover:text-zinc-800"}`}
+                className={`px-3 py-1 rounded-lg transition ${unit === Unit.CM ? "bg-white text-zinc-950 shadow-sm border border-zinc-200" : "text-zinc-500 hover:text-zinc-800"}`}
                 onClick={() => onUnitChange(Unit.CM)}
               >
                 cm
               </button>
               <button
-                className={`px-3 py-1 rounded-lg transition ${unit === Unit.INCH ? "bg-white text-zinc-950 shadow-sm border border-zinc-250" : "text-zinc-500 hover:text-zinc-800"}`}
+                className={`px-3 py-1 rounded-lg transition ${unit === Unit.INCH ? "bg-white text-zinc-950 shadow-sm border border-zinc-200" : "text-zinc-500 hover:text-zinc-800"}`}
                 onClick={() => onUnitChange(Unit.INCH)}
               >
                 inch
@@ -759,7 +769,7 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
               <button
                 id="reboot-stream-btn"
                 onClick={() => startCameraStream(selectedCameraId)}
-                className="p-2 bg-zinc-50 hover:bg-zinc-150 border border-zinc-200 rounded-xl text-zinc-500 hover:text-zinc-900 transition"
+                className="p-2 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-xl text-zinc-500 hover:text-zinc-900 transition"
                 title="Restart Lens stream"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -793,7 +803,7 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
                   className={`w-full text-left p-2.5 rounded-xl border text-xs flex items-center justify-between transition ${
                     selectedReference === obj.id
                       ? "bg-emerald-50 border-emerald-500 text-emerald-800 font-semibold"
-                      : "bg-zinc-50/50 hover:bg-zinc-100/50 border-zinc-200 text-zinc-650"
+                      : "bg-zinc-50/50 hover:bg-zinc-100/50 border-zinc-200 text-zinc-600"
                   }`}
                 >
                   <div className="pr-3">
@@ -815,7 +825,7 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
 
             {/* Instruction Callout */}
             <div className="bg-zinc-50 border border-zinc-200/80 p-3 rounded-xl flex items-start gap-2 text-[10px] text-zinc-600 leading-normal">
-              <Info className="w-4 h-4 text-zinc-450 flex-shrink-0 mt-0.5" />
+              <Info className="w-4 h-4 text-zinc-400 flex-shrink-0 mt-0.5" />
               <span>{calibrationGuidelines}</span>
             </div>
           </div>

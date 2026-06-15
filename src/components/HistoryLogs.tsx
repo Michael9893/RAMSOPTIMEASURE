@@ -122,7 +122,7 @@ export default function HistoryLogs({ logs, onSelect, onDelete, onClearAll, unit
               filteredLogs.map((log) => (
                 <div
                   key={log.id}
-                  className="group relative bg-zinc-50/50 hover:bg-zinc-100/60 border border-zinc-200/80 hover:border-zinc-350 rounded-xl p-3 flex gap-3.5 transition cursor-pointer shadow-sm"
+                  className="group relative bg-zinc-50/50 hover:bg-zinc-100/60 border border-zinc-200/80 hover:border-zinc-400 rounded-xl p-3 flex gap-3.5 transition cursor-pointer shadow-sm"
                   onClick={() => onSelect(log)}
                 >
                   {/* Photo thumbnail */}

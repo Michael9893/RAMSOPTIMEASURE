@@ -134,7 +134,7 @@ export default function Dimension3DBox({
               width: `${w}px`,
               height: `${l}px`,
               background: folderColor,
-              transform: `rotateX(90deg) translateZ(${l / 2}deg)`,
+              transform: `rotateX(90deg) translateZ(${l / 2}px)`,
               transformOrigin: "top center",
               top: "0px",
               left: "0px",
@@ -237,7 +237,7 @@ export default function Dimension3DBox({
         </div>
       </div>
 
-      <div className="w-full flex justify-between px-2 text-[10px] font-mono text-zinc-500 border-t border-zinc-150 pt-3">
+      <div className="w-full flex justify-between px-2 text-[10px] font-mono text-zinc-500 border-t border-zinc-200 pt-3">
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full border border-zinc-300 shadow-sm" style={{ backgroundColor: folderColor }} />
           <span>Color: {detectedColor}</span>
