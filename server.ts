@@ -124,7 +124,7 @@ async function generateContentWithFallback(
           delay *= 1.5;
           retries--;
         } else {
-          console.error(`[Gemini Error] Model ${model} failed irreversibly or exhausted retries:`, errMessage);
+          console.warn(`[Gemini Info] Model ${model} failed model attempt or exhausted retries:`, errMessage);
           break; // Break the retry loop and try the next fallback model in the list
         }
       }
@@ -246,24 +246,23 @@ Return the exact structural measurements strictly following the JSON Schema form
     }
 
   } catch (error: any) {
-    console.error("Measurement Error in server.ts API:", error);
-    
     const materialHint = req.body?.materialHint || "";
     const referenceId = req.body?.referenceId || "";
     
     // Check if the error is a Gemini API / Quota / Network error or placeholder API configuration issue
-    const errString = String(error?.message || error).toLowerCase();
+    const errString = String(error?.message || error || "").toLowerCase();
     const isApiIssue = errString.includes("quota") || 
                         errString.includes("exhausted") || 
                         errString.includes("429") || 
                         errString.includes("503") || 
                         errString.includes("unavailable") || 
+                        errString.includes("failed to handle") ||
                         errString.includes("api_key") || 
                         errString.includes("configured") ||
                         errString.includes("fallback");
 
     if (isApiIssue) {
-      console.warn("API limit or configuration issue identified. Triggering Local Calibrated Estimation engine.");
+      console.warn("API quota limit, network constraint or configuration issue identified. Triggering Local Calibrated Estimation engine fallback.");
 
       // Compute standard dimensions of selected material to render high fidelity estimation
       let lengthMm = 297;
@@ -342,6 +341,7 @@ Return the exact structural measurements strictly following the JSON Schema form
       });
     }
 
+    console.error("Measurement Error in server.ts API:", error);
     return res.status(500).json({ 
       error: error.message || "An internal error occurred during measurement processing." 
     });
