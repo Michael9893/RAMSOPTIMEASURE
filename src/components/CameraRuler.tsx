@@ -91,7 +91,7 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
   const [cameraPermissionState, setCameraPermissionState] = useState<'prompt' | 'granted' | 'denied'>('prompt');
   
   // Real-time Auto-Sense continuous measuring parameter states
-  const [isAutoActive, setIsAutoActive] = useState<boolean>(true);
+  const [isAutoActive, setIsAutoActive] = useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(4);
 
   const [selectedReference, setSelectedReference] = useState<string>("credit-card");
