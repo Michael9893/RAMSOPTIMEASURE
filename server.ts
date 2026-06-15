@@ -69,6 +69,71 @@ function getGeminiClient(): GoogleGenAI {
   return aiClient;
 }
 
+// Help query Gemini with automatic exponential backoff retry and model fallback
+async function generateContentWithFallback(
+  ai: GoogleGenAI,
+  params: { contents: any; config: any },
+  modelsToTry: string[] = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-flash-latest"]
+): Promise<any> {
+  let lastError: any = null;
+
+  for (const model of modelsToTry) {
+    let retries = 3;
+    let delay = 1000;
+
+    while (retries > 0) {
+      try {
+        console.log(`[Gemini Request] Attempting with model: ${model} (${retries} attempts remaining)`);
+        const response = await ai.models.generateContent({
+          model: model,
+          contents: params.contents,
+          config: params.config,
+        });
+
+        if (response && response.text) {
+          console.log(`[Gemini Request] Successful response received using model: ${model}`);
+          return response;
+        }
+        throw new Error("Received empty or legacy response content format from Gemini API.");
+      } catch (err: any) {
+        lastError = err;
+        const errMessage = err?.message || String(err);
+        const errStatus = err?.status || "";
+        
+        const isQuotaOrRateLimit =
+          errMessage.includes("429") ||
+          errMessage.toLowerCase().includes("quota") ||
+          errMessage.toLowerCase().includes("rate limit") ||
+          errMessage.toLowerCase().includes("resource_exhausted") ||
+          errMessage.toLowerCase().includes("exceeded your current quota");
+
+        if (isQuotaOrRateLimit) {
+          console.warn(`[Gemini Quota Warning] Model ${model} hit quota/rate limit. Switching to fallback model immediately.`);
+          break; // Break the retries loop for this model and go to the next model
+        }
+
+        const isTransient =
+          errMessage.includes("503") ||
+          errMessage.toLowerCase().includes("unavailable") ||
+          errMessage.toLowerCase().includes("temporary") ||
+          errMessage.toLowerCase().includes("high demand");
+
+        if (isTransient && retries > 1) {
+          console.warn(`[Gemini Warning] Model ${model} returned transient error. Backing off for ${delay}ms...`, errMessage);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          delay *= 1.5;
+          retries--;
+        } else {
+          console.error(`[Gemini Error] Model ${model} failed irreversibly or exhausted retries:`, errMessage);
+          break; // Break the retry loop and try the next fallback model in the list
+        }
+      }
+    }
+  }
+
+  throw lastError || new Error("All requested fallback models failed to handle content generation.");
+}
+
 // REST Backend API endpoints
 app.post("/api/measure", async (req, res) => {
   try {
@@ -123,9 +188,8 @@ IDENTIFICATION PROTOCOL:
 
 Return the exact structural measurements strictly following the JSON Schema format below. Do not approximate values into wild extremes. Manila directories and standard A4 folders are standard size scales (A4 is 297x210mm, US Letter is 279x216mm). Binders are slightly larger (e.g., 300x260mm) and vary in spine thickness (25mm to 75mm). Make direct, logical inferences!`;
 
-    // Prompt content generation
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+    // Prompt content generation via flexible robust wrapper
+    const response = await generateContentWithFallback(ai, {
       contents: [imagePart, promptText],
       config: {
         responseMimeType: "application/json",

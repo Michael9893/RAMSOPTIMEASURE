@@ -79,6 +79,10 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
   const [customLabel, setCustomLabel] = useState<string>("");
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [cameraPermissionState, setCameraPermissionState] = useState<'prompt' | 'granted' | 'denied'>('prompt');
+  
+  // Real-time Auto-Sense continuous measuring parameter states
+  const [isAutoActive, setIsAutoActive] = useState<boolean>(true);
+  const [countdown, setCountdown] = useState<number>(4);
 
   const [selectedReference, setSelectedReference] = useState<string>("credit-card");
   const [selectedMaterial, setSelectedMaterial] = useState<string>("Manila Filing Folder");
@@ -207,13 +211,36 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
     }
   }, [selectedCameraId]);
 
-  // Sync selection instructions
+  // Sync selection instructions and reset countdown
   useEffect(() => {
     const selectedObj = REFERENCE_OBJECTS.find((o) => o.id === selectedReference);
     if (selectedObj) {
       setCalibrationGuidelines(selectedObj.description);
     }
-  }, [selectedReference]);
+    if (streamActive && isAutoActive) {
+      setCountdown(4); // Reset to 4 seconds to allow the user to settle the item under the new guidelines
+    }
+  }, [selectedReference, selectedMaterial, streamActive, isAutoActive]);
+
+  // Automated real-time measurement loop
+  useEffect(() => {
+    if (!streamActive || !isAutoActive || isMeasuring) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          // Trigger automatic scan
+          captureSnapshotAndMeasure();
+          return 8; // Reset countdown to 8 seconds for the next loop
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [streamActive, isAutoActive, isMeasuring]);
 
   const startCameraStream = async (deviceId: string) => {
     setIsInitializing(true);
@@ -458,7 +485,7 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
     animationFrameRef.current = requestAnimationFrame(renderLoop);
   };
 
-  const captureSnapshotAndMeasure = async () => {
+  async function captureSnapshotAndMeasure() {
     const video = videoRef.current;
     if (!video || !streamActive) {
       setErrorText("Camera stream is not active. Please launch camera first.");
@@ -517,11 +544,13 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
       };
 
       setCustomLabel(""); // Clear for subsequent scans
+      setCountdown(8); // Reset countdown clock post successful auto-sense
       onScanCompleted(completedScan);
 
     } catch (err: any) {
       console.error(err);
       setErrorText(err.message || "Network exception talking to measurement backend.");
+      setIsAutoActive(false); // Gracefully pause auto-scan if there is an api error
     } finally {
       setIsMeasuring(false);
     }
@@ -649,20 +678,34 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
 
           {/* Active Overlay Hud Controls */}
           {streamActive && (
-            <div className="absolute bottom-4 left-4 z-20 bg-white/95 border border-zinc-200 rounded-xl px-3 py-1.5 flex items-center gap-2.5 text-[10px] font-mono text-zinc-700 backdrop-blur-sm shadow-sm">
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span>DEV STREAM ACTIVE</span>
-              <span className="text-zinc-300">|</span>
-              <button
-                onClick={() => setEnableHudEffects(!enableHudEffects)}
-                className="hover:text-black font-semibold transition"
-              >
-                {enableHudEffects ? "Mute HUD Filters" : "Enable HUD Filters"}
-              </button>
-            </div>
+            <>
+              <div className="absolute top-4 right-4 z-20 bg-black/85 border border-zinc-800 rounded-xl px-3 py-1.5 flex items-center gap-2 text-[10px] font-mono text-white backdrop-blur-sm shadow-md">
+                <Zap className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                {isAutoActive ? (
+                  <>
+                    <span className="font-semibold text-emerald-400">AUTO-SENSE ACTIVE</span>
+                    <span className="text-zinc-500">•</span>
+                    <span>{isMeasuring ? "Measuring..." : `Next Scan in ${countdown}s`}</span>
+                  </>
+                ) : (
+                  <span className="text-zinc-350">AUTO-SENSE PAUSED</span>
+                )}
+              </div>
+              <div className="absolute bottom-4 left-4 z-20 bg-white/95 border border-zinc-200 rounded-xl px-3 py-1.5 flex items-center gap-2.5 text-[10px] font-mono text-zinc-700 backdrop-blur-sm shadow-sm">
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span>DEV STREAM ACTIVE</span>
+                <span className="text-zinc-300">|</span>
+                <button
+                  onClick={() => setEnableHudEffects(!enableHudEffects)}
+                  className="hover:text-black font-semibold transition"
+                >
+                  {enableHudEffects ? "Mute HUD Filters" : "Enable HUD Filters"}
+                </button>
+              </div>
+            </>
           )}
         </div>
 
@@ -814,6 +857,36 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
 
         {/* Action Button */}
         <div className="mt-6 border-t border-zinc-100 pt-4 space-y-3">
+          {streamActive && (
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-3 flex items-center justify-between shadow-xs">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-zinc-800 flex items-center gap-1.5">
+                  <span className="flex h-1.5 w-1.5 relative">
+                    {isAutoActive && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
+                    <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isAutoActive ? "bg-emerald-500" : "bg-zinc-400"}`}></span>
+                  </span>
+                  Auto-Sense Camera Mode
+                </span>
+                <span className="text-[10px] text-zinc-400 font-mono">Triggers geometric scans automatically every 8s</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const newState = !isAutoActive;
+                  setIsAutoActive(newState);
+                  setCountdown(newState ? 4 : 99999);
+                }}
+                className={`text-[10px] px-2.5 py-1 rounded-lg font-bold transition uppercase tracking-wider ${
+                  isAutoActive
+                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                    : "bg-zinc-100 hover:bg-zinc-200 text-zinc-500"
+                }`}
+              >
+                {isAutoActive ? "Active" : "Paused"}
+              </button>
+            </div>
+          )}
+
           {errorText && (
             <div className="bg-rose-50 border border-rose-100 p-3 rounded-xl text-rose-700 text-xs flex items-start gap-2 shadow-sm">
               <AlertTriangle className="w-4.5 h-4.5 text-rose-600 flex-shrink-0 mt-0.5" />
