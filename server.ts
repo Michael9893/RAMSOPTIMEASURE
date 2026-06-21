@@ -171,22 +171,25 @@ INSTRUCTION TO VISION MODEL: ${ref.desc}`;
     const materialText = materialHint ? `Target object material/type hint: "${materialHint}".` : "Target object is a standard paper sheet, catalog, stack, or folder.";
 
     const promptText = `You are an expert physical dimension measurement tool operating via vision-based computer science metric analysis.
-Analyze the provided camera snapshot to measure the physical dimensions of the target paper, file, book, catalog, stack, or folder in MILLIMETERS.
+Analyze the provided camera snapshot to measure the physical dimensions of the target paper document (File) or folder/binder system (Folder) in MILLIMETERS.
 
 DETAILS OF SCENE:
 - ${calibrationReferenceDetail}
 - ${materialText}
 
-IDENTIFICATION PROTOCOL:
-1. Locate the main target folder, paper file, or binder. It is the core subject of the photo.
-2. Locate the Calibration Reference object if one is placed.
-3. Compare pixels of the reference object against the target document/paper. If no reference is provided, calibrate using standard office ambient dimensions (e.g. standard desk texture patterns, pen sizes, keyboard keys [each is ~19mm], keyboard widths, laptop edges, human fingers, or standard desk accessories).
+IDENTIFICATION PROTOCOL & STRICT CATEGORIZATION:
+1. Locate the main target folder or paper document. It is the core subject of the photo.
+2. Locate the Calibration Reference object if one is placed next to it.
+3. Compare pixels of the reference object against the target document/paper. If no reference is provided, calibrate using standard office ambient dimensions (e.g. standard desk texture patterns, pen sizes, keyboard keys [each is ~19mm], laptop edges, or hand size).
 4. Measure:
    - "lengthMm" (the absolute longer edge dimension of the paper/folder's front face)
    - "widthMm" (the absolute shorter edge dimension of the paper/folder's front face)
-   - "thicknessMm" (the physical edge thickness or height of the item. For a single piece of copy paper, it is ~0.1mm. For standard card folders, it is 0.4mm to 1.5mm. For thick piles, books, binders, or files, it is the actual stack depth in mm. Look at shadows and edges to deduce this accurate thickness measurement).
+   - "thicknessMm" (the physical edge thickness or height of the item. For a single piece of copy paper, it is ~0.1mm. For standard card folders, it is 0.4mm to 1.5mm. For thick piles, books, binders, or files, it is the actual stack depth in mm).
+5. Categorize strictly as either "File" or "Folder":
+   - "File": standard flat printed paper sheet, document page, single leaf copy page, circular, brochure, template sheet, invoice, or envelope sheet.
+   - "Folder": cardboard folder, manila folder, binder, notebook, presentation portfolio, stacked file dividers.
 
-Return the exact structural measurements strictly following the JSON Schema format below. Do not approximate values into wild extremes. Manila directories and standard A4 folders are standard size scales (A4 is 297x210mm, US Letter is 279x216mm). Binders are slightly larger (e.g., 300x260mm) and vary in spine thickness (25mm to 75mm). Make direct, logical inferences!`;
+Return the exact structural measurements strictly following the JSON Schema format below. Categorize the detectedType strictly into either "File" or "Folder".`;
 
     // Prompt content generation via flexible robust wrapper
     const response = await generateContentWithFallback(ai, {
@@ -218,7 +221,7 @@ Return the exact structural measurements strictly following the JSON Schema form
             },
             detectedType: { 
               type: Type.STRING, 
-              description: "Specific type of item detected (e.g., 'A4 Document Sheet', '3-Ring Spine Binder', 'Corrugated Folder Envelope', 'Cardstock Booklet')." 
+              description: "The exact category of target. MUST strictly be either 'File' or 'Folder'." 
             },
             explanation: { 
               type: Type.STRING, 
@@ -237,6 +240,15 @@ Return the exact structural measurements strictly following the JSON Schema form
 
     try {
       const parsed = JSON.parse(outputText.trim());
+      
+      // Upgrade & Sanitize: ensure parsed.detectedType is strictly 'File' or 'Folder'
+      const rawType = String(parsed.detectedType || "").toLowerCase();
+      if (rawType.includes("folder") || rawType.includes("binder") || rawType.includes("notebook") || rawType.includes("envelope") || rawType.includes("portfolio") || rawType.includes("stack") || rawType.includes("pile")) {
+        parsed.detectedType = "Folder";
+      } else {
+        parsed.detectedType = "File";
+      }
+
       return res.json(parsed);
     } catch {
       return res.status(502).json({
@@ -267,47 +279,24 @@ Return the exact structural measurements strictly following the JSON Schema form
       // Compute standard dimensions of selected material to render high fidelity estimation
       let lengthMm = 297;
       let widthMm = 210;
-      let thicknessMm = 0.8;
-      let detectedType = "Calibrated " + (materialHint || "File Folder");
-      let detectedPaperColor = "Manila/Organic Tone";
+      let thicknessMm = 0.1;
+      let detectedType = "File";
+      let detectedPaperColor = "White Print Paper";
 
       const mHint = String(materialHint || "").toLowerCase();
-      if (mHint.includes("sheet") || mHint.includes("copy")) {
+      if (mHint.includes("folder") || mHint.includes("binder") || mHint.includes("notebook") || mHint.includes("stack") || mHint.includes("portfolio")) {
+        lengthMm = 292;
+        widthMm = 241;
+        thicknessMm = 0.8;
+        detectedType = "Folder";
+        detectedPaperColor = "Manila Cream";
+      } else {
+        // Default is standard page sheet (File)
         lengthMm = 297;
         widthMm = 210;
         thicknessMm = 0.1;
-        detectedType = "Calibrated Document Sheet";
-        detectedPaperColor = "White Print Paper";
-      } else if (mHint.includes("manila") || mHint.includes("filing")) {
-        lengthMm = 292;
-        widthMm = 241;
-        thicknessMm = 0.5;
-        detectedType = "Calibrated Manila Folder";
-        detectedPaperColor = "Manila Cream";
-      } else if (mHint.includes("cardstock") || mHint.includes("envelope")) {
-        lengthMm = 305;
-        widthMm = 230;
-        thicknessMm = 1.2;
-        detectedType = "Calibrated Cardstock Envelope";
-        detectedPaperColor = "Kraft Brown";
-      } else if (mHint.includes("thick") || mHint.includes("stack")) {
-        lengthMm = 280;
-        widthMm = 216;
-        thicknessMm = 25.0;
-        detectedType = "Calibrated Document Pile";
-        detectedPaperColor = "Multi-colored Leaflets";
-      } else if (mHint.includes("notebook") || mHint.includes("spiral")) {
-        lengthMm = 267;
-        widthMm = 203;
-        thicknessMm = 12.0;
-        detectedType = "Calibrated Spiral Notebook";
-        detectedPaperColor = "Cyan Cover Page";
-      } else if (mHint.includes("binder") || mHint.includes("ring")) {
-        lengthMm = 295;
-        widthMm = 275;
-        thicknessMm = 45.0;
-        detectedType = "Calibrated Binder Binder";
-        detectedPaperColor = "Dark Charcoal Binder";
+        detectedType = "File";
+        detectedPaperColor = "White Document Sheet";
       }
 
       // Slightly calibrate measurements if referenceId was provided

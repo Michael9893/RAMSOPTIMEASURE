@@ -65,12 +65,8 @@ const REFERENCE_OBJECTS: ReferenceObject[] = [
 ];
 
 const MATERIAL_HINTS = [
-  "Standard Paper Sheet",
-  "Manila Filing Folder",
-  "Cardstock Folder / Envelope",
-  "Thick Document Stack",
-  "Standard Spiral Notebook",
-  "Heavy 3-Ring Spine Binder"
+  "File",
+  "Folder"
 ];
 
 interface CameraRulerProps {
@@ -95,7 +91,7 @@ export default function CameraRuler({ onScanCompleted, unit, onUnitChange }: Cam
   const [countdown, setCountdown] = useState<number>(4);
 
   const [selectedReference, setSelectedReference] = useState<string>("credit-card");
-  const [selectedMaterial, setSelectedMaterial] = useState<string>("Manila Filing Folder");
+  const [selectedMaterial, setSelectedMaterial] = useState<string>("File");
   const [calibrationGuidelines, setCalibrationGuidelines] = useState<string>(
     REFERENCE_OBJECTS[0].description
   );
