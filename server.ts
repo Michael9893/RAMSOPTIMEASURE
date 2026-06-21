@@ -356,7 +356,7 @@ async function setupServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Paper Scan Ruler server running on http://localhost:${PORT}`);
+    console.log(`RAMS OPTI SCANNER server running on http://localhost:${PORT}`);
   });
 }
 

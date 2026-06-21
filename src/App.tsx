@@ -61,17 +61,17 @@ export default function App() {
           
           {/* Logo / Brand block */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-black hover:bg-zinc-800 text-white rounded-lg flex items-center justify-center shadow-sm transition-colors">
+            <div className="w-8 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center justify-center shadow-sm transition-colors">
               <Ruler className="w-4.5 h-4.5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-semibold text-zinc-900 tracking-tight">RAMSOptiMeasure</h1>
+                <h1 className="text-base font-bold text-zinc-900 tracking-tight uppercase">RAMS OPTI SCANNER</h1>
                 <span className="text-[10px] font-mono font-medium px-2 py-0.5 bg-zinc-100 text-zinc-500 rounded-full border border-zinc-200">
-                  v2.4
+                  v3.0 - Active
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400">Tactile folder & document metric micro-ruler</p>
+              <p className="text-[11px] text-zinc-500">Professional folder & documents camera caliper</p>
             </div>
           </div>
 
@@ -212,7 +212,7 @@ export default function App() {
 
       {/* 3. Footer Branding */}
       <footer className="border-t border-zinc-200 bg-white py-8 px-6 mt-12 text-center text-xs text-zinc-500 shadow-inner">
-        <p>Paper Scan Ruler • Powered by Google AI Studio Server-Side Advanced Vision Modeling.</p>
+        <p>RAMS OPTI SCANNER • Powered by Google AI Studio Server-Side Advanced Vision Modeling.</p>
         <p className="text-[10px] text-zinc-400 mt-1">Compiled securely via standard sandbox container protocols.</p>
       </footer>
 
